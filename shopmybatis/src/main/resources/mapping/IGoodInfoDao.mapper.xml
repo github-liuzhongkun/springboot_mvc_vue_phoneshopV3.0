@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.city.shopmybatis.dao.IGoodInfoDao">
+
+	<resultMap  id="GoodInfoResultMap" type="GoodInfo">
+		<id property="id" column="GOODID"/>
+		<result property="photo" column="PHOTO"/>
+		<result property="filename" column="FILENAME"/>
+		<result property="contentType" column="CONTENTTYPE"/>
+	</resultMap>
+
+	<insert id="insert" parameterType="GoodInfo" >
+	insert into goodinfo (GOODID)
+	values (#{good.id})
+	</insert>
+
+	<insert id="insertWithPhoto" parameterType="GoodInfo">
+	insert into goodinfo (GOODID,PHOTO,FILENAME,CONTENTTYPE)
+	values (#{good.id},#{photo},#{filename},#{contentType})
+	</insert>
+
+	<update id="update" parameterType="GoodInfo">
+		update goodinfo
+		<set>
+			<if test="photo!=null and photo!=''">
+				PHOTO=#{photo},
+			</if>
+			<if test="filename!=null and filename!=''">
+				FILENAME=#{filename},
+			</if>
+			<if test="contentType!=null and contentType!=''">
+				CONTENTTYPE=#{contentType},
+			</if>
+		</set>
+		where GOODID=#{good.id}
+	</update>
+
+	<delete id="delete" parameterType="GoodInfo">
+	delete from goodinfo where GOODID=#{good.id}
+	</delete>
+
+	<select id="selectById" parameterType="_int" resultMap="GoodInfoResultMap" >
+	 select * from goodinfo where GOODID=#{id}
+	</select>
+
+	<select id="selectListByAll" resultMap="GoodInfoResultMap" >
+	 select * from goodinfo
+	</select>
+</mapper>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.city.shopmybatis.dao.IGoodDao">
+
+	<resultMap  id="GoodResultMap" type="Good">
+		<id property="id" column="GOODID" />
+		<result property="name" column="GOODNAME"/>
+		<result property="price" column="PRICE"/>
+		<result property="qty" column="QTY"/>
+		<result property="city" column="CITY"/>
+	</resultMap>
+
+	<!--  使用内嵌式ResultMap方式实现关联对象的取得-->
+	<resultMap  id="GoodWithCategoryResultMap" type="Good" extends="GoodResultMap">
+		<association property="category" resultMap="com.city.shopmybatis.dao.ICategoryDao.CategoryResultMap"></association>
+	</resultMap>
+
+	<!-- 关联部门的员工结果映射  使用内嵌式ResultMap方式取得关联的部门，地址，联系信息，爱好集合-->
+	<resultMap  id="GoodWithCategoryInfoAreasResultMap" type="Good" extends="GoodResultMap">
+		<association property="category" resultMap="com.city.shopmybatis.dao.ICategoryDao.CategoryResultMap"></association>
+		<association property="goodInfo" resultMap="com.city.shopmybatis.dao.IGoodInfoDao.GoodInfoResultMap"></association>
+		<collection property="areas" ofType="Area" resultMap="com.city.shopmybatis.dao.IAreaDao.AreaResultMap"></collection>
+	</resultMap>
+
+	<insert id="insert" parameterType="Good" keyProperty="id" keyColumn="GOODID" useGeneratedKeys="true">
+	insert into good (CATEGORYID,GOODNAME,PRICE,QTY,CITY)
+	values (#{category.id},#{name},#{price},#{qty},#{city})
+	</insert>
+
+	<update id="update" parameterType="Good">
+		update good
+		<set>
+			<if test="category.id!=null and category.id!=0">
+				CATEGORYID=#{category.id},
+			</if>
+			<if test="name!=null and name!=''">
+				GOODNAME=#{name},
+			</if>
+			<if test="price!=null and price!=0">
+				PRICE=#{price},
+			</if>
+			<if test="qty!=null and qty!=0">
+				QTY=#{qty},
+			</if>
+			<if test="city!=null and city!=''">
+				CITY=#{city},
+			</if>
+		</set>
+		where GOODID=#{id}
+	</update>
+
+	<!-- 删除员工 -->
+	<delete id="delete" parameterType="Good">
+	delete from good where GOODID=#{id}
+	</delete>
+
+
+	<select id="selectById" parameterType="_int" resultMap="GoodResultMap">
+	select * from good where GOODID=#{id}
+	</select>
+
+	<select id="selectByIdWithCategory" parameterType="_int" resultMap="GoodWithCategoryResultMap">
+	select g.*,c.*
+	from good g left outer join category c on g.CATEGORYID=b.CATEGORYID
+	where g.GOODID=#{id}
+	</select>
+
+	<select id="selectByIdWithCategoryAndGoodInfoAndAreas" parameterType="_int" resultMap="GoodWithCategoryInfoAreasResultMap">
+	select g.*,c.*,gi.*,ga.*,a.*
+	from good g
+	left outer join category c on g.CATEGORYID=c.CATEGORYID
+	inner join goodinfo gi on gi.GOODID=g.GOODID
+	left outer join goodarea ga on ga.GOODID=g.GOODID
+	left outer join area a on a.AID=ga.AID
+	where g.GOODID=#{id}
+	</select>
+
+	<select id="selectListByAll" resultMap="GoodResultMap">
+	select * from good
+	</select>
+
+	<select id="selectListByCategory" parameterType="_int" resultMap="GoodResultMap">
+	select * from good where CATEGORYID=#{id}
+	</select>
+
+	<select id="selectListByAllWithCategory" resultMap="GoodWithCategoryResultMap">
+	select g.*,c.*
+	from good g left outer join category c on g.CATEGORYID=c.CATEGORYID
+	</select>
+
+	<select id="selectListByAllWithPage" resultMap="GoodResultMap" >
+        select * from good
+		<where>
+			<if test="category!=0">
+				and CATEGORYID=#{category}
+			</if>
+		</where>
+		limit #{start},#{rows}
+	</select>
+
+	<select id="selectCountByAll" parameterType="_int" resultType="_int">
+	    select count(GOODID) from good
+		<where>
+			<if test="category!=0">
+				and CATEGORYID=#{category}
+			</if>
+		</where>
+	</select>
+
+
+	<insert id="insertArea">
+	insert into goodarea values (#{id},#{AreaId})
+	</insert>
+
+	<insert id="insertAreas">
+	insert ignore into goodarea values
+	<foreach collection="AreaIds" item="AreaId" separator=",">
+		(#{id},#{AreaId})
+	</foreach>
+	</insert>
+
+	<delete id="deleteAreas" parameterType="_int">
+	delete from goodarea where GOODID=#{id}
+	</delete>
+
+</mapper>

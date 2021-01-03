@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.city.shopmybatis.dao.IAreaDao">
+    <resultMap id="AreaResultMap" type="Area">
+        <id column="AID" property="id"/>
+        <result column="ANAME" property="name"/>
+    </resultMap>
+
+    <!-- 关联员工集合属性的结果集映射  使用内嵌是resultMap方式取得关联属性, 推荐此方式 -->
+    <resultMap id="AreaWithGoodsResultMap" type="Area" extends="AreaResultMap">
+        <collection property="goods" ofType="Good" resultMap="com.city.shopmybatis.dao.IGoodDao.GoodResultMap"/>
+    </resultMap>
+
+    <!-- 使用自增量字段 语法  -->
+    <insert id="insert" keyProperty="id" keyColumn="AID" useGeneratedKeys="true" >
+        insert into area (ANAME) values (#{name})
+	</insert>
+
+    <!-- 修改部门，动态SQL set标记的使用 -->
+    <update id="update" parameterType="Area">
+        update area
+        <set>
+            <if test="name!=null and name!=''">
+                ANAME=#{name},
+            </if>
+        </set>
+        where AID=#{id}
+    </update>
+
+    <delete id="delete" parameterType="Category">
+        delete from area where AID=#{id}
+	</delete>
+
+    <select id="selectById" parameterType="_int" resultMap="AreaResultMap" >
+        select * from area where AID=#{id}
+	</select>
+
+    <select id="selectByIdWithGoods" parameterType="_int" resultMap="AreaWithGoodsResultMap">
+        select a.*,g.*
+        from area a
+        left outer join goodarea ga on a.AID=ga.AID
+        left outer join good g on ga.GOODID=g.GOODID
+        where a.AID=#{id}
+	</select>
+
+    <select id="selectByGoodIdWithAreas" parameterType="_int" resultMap="AreaWithGoodsResultMap">
+        select a.*,ga.*
+        from area a
+        left outer join goodarea ga on a.AID=ga.AID
+        where ga.GOODID=#{id}
+	</select>
+
+
+    <select id="selectListByAll"  resultMap="AreaResultMap" useCache="true" flushCache="false">
+        select * from area
+	</select>
+
+    <select id="selectListByAllWithGoods" resultMap="AreaWithGoodsResultMap">
+	    select a.*,g.*
+        from area a
+        left outer join goodarea ga on a.AID=ga.AID
+        left outer join good g on ga.GOODID=g.GOODID
+	</select>
+
+    <select id="selectListByAllWithPage" resultMap="AreaResultMap" >
+        select * from area limit #{start},#{rows}
+	</select>
+
+    <!-- 取得部门的个数 -->
+    <select id="selectCountByAll" resultType="_int">
+	    select count(AID) from area
+	</select>
+
+</mapper>
